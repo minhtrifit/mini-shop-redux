@@ -85,6 +85,7 @@ const HomePage: React.FC = () => {
   const handleProductPag = (value: number) => {
     // console.log(value);
     dispath(getProductsListPerPage(value));
+    window.scrollTo(0, 0);
   };
 
   return (
@@ -130,7 +131,7 @@ const HomePage: React.FC = () => {
             })}
         </Space>
       )}
-      {productsPageCount !== 0 && (
+      {!isLoadingProductList && productsPageCount !== 0 && (
         <div
           style={{
             width: "100%",

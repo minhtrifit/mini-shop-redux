@@ -6,6 +6,7 @@ import "./App.css";
 import Navbar from "./components/Navbar";
 
 import HomePage from "./pages/HomePage";
+import AddProductPage from "./pages/AddProductPage";
 
 const App: React.FC = () => {
   return (
@@ -20,6 +21,7 @@ const App: React.FC = () => {
       </Title>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/add/product" element={<AddProductPage />} />
       </Routes>
     </div>
   );

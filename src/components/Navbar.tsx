@@ -25,7 +25,7 @@ const Navbar: React.FC = () => {
           <Link to="/">
             <p style={navUrlStyles}>Home</p>
           </Link>
-          <Link to="/">
+          <Link to="/add/product">
             <p style={navUrlStyles}>Add Product</p>
           </Link>
           <Button type={"primary"}>Login</Button>

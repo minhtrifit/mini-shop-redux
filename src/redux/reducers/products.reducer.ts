@@ -2,6 +2,8 @@ import { createReducer, createAsyncThunk } from "@reduxjs/toolkit";
 import { Product } from "../../types/product.type";
 import axios from "axios";
 
+import { PendingAction, RejectedAction } from "../../types/reduxthunk.type";
+
 import {
   sortProductsList,
   getProductsListPerPage,
@@ -9,6 +11,7 @@ import {
 
 // Interface declair
 interface ProductState {
+  currentId: string;
   productList: Product[];
   productListPerPage: Product[];
   pageCount: number;
@@ -17,7 +20,7 @@ interface ProductState {
   isError: boolean;
 }
 
-// createAsyncThunk declair
+// createAsyncThunk middleware
 export const getAllProducts = createAsyncThunk(
   "products/getAllProducts",
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -40,6 +43,7 @@ export const getAllProducts = createAsyncThunk(
 
 // InitialState value
 const initialState: ProductState = {
+  currentId: "",
   productList: [],
   productListPerPage: [],
   pageCount: 0,
@@ -67,10 +71,6 @@ const productReducer = createReducer(initialState, (builder) => {
 
       state.isLoading = false;
     })
-    .addCase(getAllProducts.rejected, (state) => {
-      state.isLoading = false;
-      state.isError = true;
-    })
     .addCase(sortProductsList, (state, action) => {
       if (action.payload !== "All categories") {
         const sortList = state.productList.filter((product) => {
@@ -89,7 +89,22 @@ const productReducer = createReducer(initialState, (builder) => {
       const begin = (action.payload - 1) * 6;
       const end = (action.payload - 1) * 6 + 6;
       state.productListPerPage = state.productList.slice(begin, end);
-    });
+    })
+    .addMatcher(
+      (action): action is PendingAction => action.type.endsWith("/pending"),
+      (state, action) => {
+        state.currentId = action.meta.requestId;
+      }
+    )
+    .addMatcher(
+      (action): action is RejectedAction => action.type.endsWith("/rejected"),
+      (state, action) => {
+        if (state.isLoading && state.currentId === action.meta.requestId) {
+          state.isLoading = false;
+          state.isError = true;
+        }
+      }
+    );
 });
 
 export default productReducer;

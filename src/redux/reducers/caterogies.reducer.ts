@@ -2,7 +2,9 @@ import { createReducer, createAsyncThunk } from "@reduxjs/toolkit";
 import { Category } from "../../types/product.type";
 import axios from "axios";
 
-// createAsyncThunk declair
+import { PendingAction, RejectedAction } from "../../types/reduxthunk.type";
+
+// createAsyncThunk middleware
 export const getAllCategories = createAsyncThunk(
   "products/getAllCategories",
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,6 +27,7 @@ export const getAllCategories = createAsyncThunk(
 
 // Reducer InitialState interface declair
 interface ProductState {
+  currentId: string;
   categories: Category[];
   isLoading: boolean;
   isError: boolean;
@@ -32,6 +35,7 @@ interface ProductState {
 
 // InitialState value
 const initialState: ProductState = {
+  currentId: "",
   categories: [
     {
       value: "All categories",
@@ -56,10 +60,21 @@ const categoryReducer = createReducer(initialState, (builder) => {
       });
       state.isLoading = false;
     })
-    .addCase(getAllCategories.rejected, (state) => {
-      state.isLoading = false;
-      state.isError = true;
-    });
+    .addMatcher(
+      (action): action is PendingAction => action.type.endsWith("/pending"),
+      (state, action) => {
+        state.currentId = action.meta.requestId;
+      }
+    )
+    .addMatcher(
+      (action): action is RejectedAction => action.type.endsWith("/rejected"),
+      (state, action) => {
+        if (state.isLoading && state.currentId === action.meta.requestId) {
+          state.isLoading = false;
+          state.isError = true;
+        }
+      }
+    );
 });
 
 export default categoryReducer;
