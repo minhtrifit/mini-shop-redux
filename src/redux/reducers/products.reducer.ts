@@ -11,6 +11,7 @@ import {
 import {
   sortProductsList,
   getProductsListPerPage,
+  resetAddProductCheck,
 } from "../actions/products.action";
 
 // Interface declair
@@ -126,14 +127,11 @@ const productReducer = createReducer(initialState, (builder) => {
       const end = (action.payload - 1) * 6 + 6;
       state.productListPerPage = state.productList.slice(begin, end);
     })
-    .addCase(addNewProduct.pending, (state) => {
-      state.isAddProduct = false;
-    })
     .addCase(addNewProduct.fulfilled, (state, action) => {
       state.productList.push(action.payload);
       state.isAddProduct = true;
     })
-    .addCase(addNewProduct.rejected, (state) => {
+    .addCase(resetAddProductCheck, (state) => {
       state.isAddProduct = false;
     })
     .addMatcher(

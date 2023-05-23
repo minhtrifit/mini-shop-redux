@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Button, Form, Input, Spin, Space } from "antd";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { addNewProduct } from "../redux/reducers/products.reducer";
+import { resetAddProductCheck } from "../redux/actions/products.action";
 import { useAppDispatch } from "../redux/hooks";
 
 import { Product } from "../types/product.type";
@@ -38,6 +39,7 @@ const onFinishFailed = (errorInfo: any) => {
 };
 
 const AddProductPage: React.FC = () => {
+  const dispath = useDispatch();
   const dispathAsync = useAppDispatch();
   const navigate = useNavigate();
 
@@ -45,12 +47,12 @@ const AddProductPage: React.FC = () => {
     (state) => state.products.productListPerPage
   );
 
-  const isAddProduct = useSelector<RootState, boolean>(
-    (state) => state.products.isAddProduct
-  );
-
   const isLoading = useSelector<RootState, boolean>(
     (state) => state.products.isLoading
+  );
+
+  const isAddProduct = useSelector<RootState, boolean>(
+    (state) => state.products.isAddProduct
   );
 
   // Redirect to homepage if product list empty
@@ -63,10 +65,11 @@ const AddProductPage: React.FC = () => {
 
   // Alert if add product success
   useEffect(() => {
+    dispath(resetAddProductCheck());
     if (isAddProduct) {
       toast.success("Add product successfully");
     }
-  }, [isAddProduct]);
+  }, [dispath, isAddProduct]);
 
   return (
     <div
@@ -81,7 +84,11 @@ const AddProductPage: React.FC = () => {
         size="middle"
         style={{ display: "flex", flexDirection: "column" }}
       >
-        {isLoading === true && <Spin tip="Loading"></Spin>}
+        {isLoading === true && (
+          <div className="example">
+            <Spin />
+          </div>
+        )}
         <Form
           name="basic"
           labelCol={{ span: 8 }}
