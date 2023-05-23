@@ -1,8 +1,12 @@
 import { createReducer, createAsyncThunk } from "@reduxjs/toolkit";
-import { Product } from "../../types/product.type";
+import { NewProduct, Product } from "../../types/product.type";
 import axios from "axios";
 
-import { PendingAction, RejectedAction } from "../../types/reduxthunk.type";
+import {
+  PendingAction,
+  FulfilledAction,
+  RejectedAction,
+} from "../../types/reduxthunk.type";
 
 import {
   sortProductsList,
@@ -18,6 +22,7 @@ interface ProductState {
   sortList: Product[];
   isLoading: boolean;
   isError: boolean;
+  isAddProduct: boolean;
 }
 
 // createAsyncThunk middleware
@@ -34,7 +39,36 @@ export const getAllProducts = createAsyncThunk(
           signal: thunkAPI.signal,
         }
       );
+
       return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const addNewProduct = createAsyncThunk(
+  "products/addNewProduct",
+  async (product: NewProduct, thunkAPI) => {
+    try {
+      const response = await axios.post<{ id: string }>(
+        `${import.meta.env.VITE_API_URL}/products`,
+        {
+          signal: thunkAPI.signal,
+          body: JSON.stringify(product),
+        }
+      );
+
+      const newProductId = response.data?.id;
+
+      // Create Product
+      const data: Product = {
+        ...product,
+        id: Number(newProductId),
+        price: product.price.toString(),
+      };
+
+      return data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
     }
@@ -50,6 +84,7 @@ const initialState: ProductState = {
   sortList: [],
   isLoading: false,
   isError: false,
+  isAddProduct: false,
 };
 
 const productReducer = createReducer(initialState, (builder) => {
@@ -59,19 +94,20 @@ const productReducer = createReducer(initialState, (builder) => {
     })
     .addCase(getAllProducts.fulfilled, (state, action) => {
       // Set product list
-      state.productList = action.payload;
+      if (state.productList.length === 0) state.productList = action.payload;
 
       // Set page count
-      state.pageCount = Math.ceil(action.payload.length / 6);
+      state.pageCount = Math.ceil(state.productList.length / 6);
 
       // Set default product list per page (page = 1)
       const begin = (1 - 1) * 6;
       const end = (1 - 1) * 6 + 6;
-      state.productListPerPage = action.payload.slice(begin, end);
+      state.productListPerPage = state.productList.slice(begin, end);
 
       state.isLoading = false;
     })
     .addCase(sortProductsList, (state, action) => {
+      // Set page count by category
       if (action.payload !== "All categories") {
         const sortList = state.productList.filter((product) => {
           return product.category === action.payload;
@@ -81,7 +117,7 @@ const productReducer = createReducer(initialState, (builder) => {
         // Set page count
         state.pageCount = Math.ceil(sortList.length / 6);
       } else {
-        // Set page count
+        // Set page count by all categories
         state.pageCount = Math.ceil(state.productList.length / 6);
       }
     })
@@ -90,10 +126,32 @@ const productReducer = createReducer(initialState, (builder) => {
       const end = (action.payload - 1) * 6 + 6;
       state.productListPerPage = state.productList.slice(begin, end);
     })
+    .addCase(addNewProduct.pending, (state) => {
+      state.isAddProduct = false;
+    })
+    .addCase(addNewProduct.fulfilled, (state, action) => {
+      state.productList.push(action.payload);
+      state.isAddProduct = true;
+    })
+    .addCase(addNewProduct.rejected, (state) => {
+      state.isAddProduct = false;
+    })
     .addMatcher(
       (action): action is PendingAction => action.type.endsWith("/pending"),
       (state, action) => {
         state.currentId = action.meta.requestId;
+        if (state.currentId === action.meta.requestId) {
+          state.isLoading = true;
+        }
+      }
+    )
+    .addMatcher(
+      (action): action is FulfilledAction => action.type.endsWith("/fulfilled"),
+      (state, action) => {
+        if (state.isLoading && state.currentId === action.meta.requestId) {
+          state.isLoading = false;
+          state.isError = false;
+        }
       }
     )
     .addMatcher(

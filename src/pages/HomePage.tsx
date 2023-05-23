@@ -29,6 +29,8 @@ const HomePage: React.FC = () => {
   const dispath = useDispatch();
   const dispathAsync = useAppDispatch();
   const [categoryValue, setCategoryValue] = useState<Category["value"]>("");
+  const [width, setWidth] = useState(window.innerWidth);
+  const breakpoint = 1200;
 
   // Product reducers selector
   const productList = useSelector<RootState, Product[]>(
@@ -51,6 +53,14 @@ const HomePage: React.FC = () => {
   const categoriesList = useSelector<RootState, Category[]>(
     (state) => state.categories.categories
   );
+
+  useEffect(() => {
+    const handleWindowResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handleWindowResize);
+
+    // Return a function from the effect that removes the event listener
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, []);
 
   //========== API CALL
   useEffect(() => {
@@ -93,7 +103,11 @@ const HomePage: React.FC = () => {
       {categoriesList.length !== 0 && categoryValue !== "" && (
         <Select
           defaultValue={categoryValue}
-          style={{ width: 150, position: "relative", left: "70%" }}
+          style={{
+            width: 150,
+            position: "relative",
+            left: `${width < breakpoint ? "50%" : "70%"}`,
+          }}
           onChange={(value: string) => {
             handleChange(value);
           }}
@@ -113,7 +127,7 @@ const HomePage: React.FC = () => {
           size="middle"
           style={{
             margin: "100px auto",
-            width: "50%",
+            width: `${width < breakpoint ? "95%" : "50%"}`,
             display: "flex",
             flexDirection: "row",
             flexWrap: "wrap",

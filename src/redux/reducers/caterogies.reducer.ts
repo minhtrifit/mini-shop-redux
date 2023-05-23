@@ -52,12 +52,13 @@ const categoryReducer = createReducer(initialState, (builder) => {
       state.isLoading = true;
     })
     .addCase(getAllCategories.fulfilled, (state, action) => {
-      action.payload.forEach((categoryValue: string) => {
-        state.categories.push({
-          value: categoryValue,
-          label: categoryValue,
+      if (state.categories.length === 1)
+        action.payload.forEach((categoryValue: string) => {
+          state.categories.push({
+            value: categoryValue,
+            label: categoryValue,
+          });
         });
-      });
       state.isLoading = false;
     })
     .addMatcher(

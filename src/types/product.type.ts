@@ -7,6 +7,14 @@ export interface Product {
   image: string;
 }
 
+export interface NewProduct {
+  title: string;
+  price: number;
+  category: string;
+  description: string;
+  image: string;
+}
+
 export interface Category {
   value: string;
   label: string;
