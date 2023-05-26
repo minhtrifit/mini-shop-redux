@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { addNewProduct } from "../redux/reducers/products.reducer";
 import { resetAddProductCheck } from "../redux/actions/products.action";
 import { useAppDispatch } from "../redux/hooks";
+import { AppDispatch } from "../redux/store";
 
 import { Product } from "../types/product.type";
 import { NewProduct } from "../types/product.type";
@@ -21,7 +22,7 @@ const newProductTempData: NewProduct = {
   category: "electronics",
 };
 
-const onFinish = (product: NewProduct, dispathAsync: any) => {
+const onFinish = (product: NewProduct, dispathAsync: AppDispatch) => {
   const newProduct = {
     title: product.title,
     price: product.price,

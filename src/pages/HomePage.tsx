@@ -66,6 +66,11 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const promise = dispathAsync(getAllProducts());
 
+    // Need unwarp() method
+    promise.unwrap().catch((err) => {
+      console.log("Check err:", err);
+    });
+
     // Cancel React.StrictMode API call
     return () => {
       promise.abort();
@@ -74,6 +79,10 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const promise = dispathAsync(getAllCategories());
+
+    promise.unwrap().catch((err) => {
+      console.log("Check err:", err);
+    });
 
     // Cancel React.StrictMode API call
     return () => {

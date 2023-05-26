@@ -42,7 +42,11 @@ export const getAllProducts = createAsyncThunk(
       );
 
       return response.data;
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.name === "AxiosError") {
+        return thunkAPI.rejectWithValue({ message: "Get products failed" });
+      }
       return thunkAPI.rejectWithValue(error);
     }
   }
@@ -70,7 +74,11 @@ export const addNewProduct = createAsyncThunk(
       };
 
       return data;
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.name === "AxiosError") {
+        return thunkAPI.rejectWithValue({ message: "Get products failed" });
+      }
       return thunkAPI.rejectWithValue(error);
     }
   }
