@@ -77,7 +77,29 @@ export const addNewProduct = createAsyncThunk(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.name === "AxiosError") {
-        return thunkAPI.rejectWithValue({ message: "Get products failed" });
+        return thunkAPI.rejectWithValue({ message: "Add products failed" });
+      }
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteProduct = createAsyncThunk(
+  "products/deleteProduct",
+  async (id: string, thunkAPI) => {
+    try {
+      const response = await axios.delete<Product>(
+        `${import.meta.env.VITE_API_URL}/products/${id}`,
+        {
+          signal: thunkAPI.signal,
+        }
+      );
+
+      return response.data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.name === "AxiosError") {
+        return thunkAPI.rejectWithValue({ message: "Delete product failed" });
       }
       return thunkAPI.rejectWithValue(error);
     }
@@ -141,6 +163,25 @@ const productReducer = createReducer(initialState, (builder) => {
     })
     .addCase(resetAddProductCheck, (state) => {
       state.isAddProduct = false;
+    })
+    .addCase(deleteProduct.fulfilled, (state, action) => {
+      const deleteProduct = action.payload;
+
+      const filterProductList = state.productList.filter((product) => {
+        return product.id !== deleteProduct.id;
+      });
+
+      const filterProductListPerPage = state.productListPerPage.filter(
+        (product) => {
+          return product.id !== deleteProduct.id;
+        }
+      );
+
+      // Update productList
+      state.productList = filterProductList;
+
+      // Update productListPerPage
+      state.productListPerPage = filterProductListPerPage;
     })
     .addMatcher(
       (action): action is PendingAction => action.type.endsWith("/pending"),
